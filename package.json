@@ -1,10 +1,10 @@
 {
   "name": "mini-idm",
-  "version": "1.0.0",
-  "description": "Gestionnaire de telechargement video multi-segments + Extension Navigateur (architecture inspiree d'IDM)",
+  "version": "1.1.0",
+  "description": "Logiciel Windows natif (Mini-IDM.exe) + Serveur multi-segments/HLS + Extension Navigateur (architecture inspiree d'IDM)",
   "main": "server/server.js",
   "scripts": {
-    "start": "node server/server.js"
+    "start": "node server/server.js",
+    "build:exe": "\"C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe\" /nologo /target:winexe /out:Mini-IDM.exe /win32icon:desktop\\app.ico /r:System.dll /r:System.Drawing.dll /r:System.Windows.Forms.dll /r:System.Web.Extensions.dll desktop\\MiniIdmApp.cs"
   }
 }
-
