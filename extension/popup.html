@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mini-IDM</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --border: #334155;
+      --accent: #10b981;
+      --accent-hover: #059669;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      width: 400px;
+      min-height: 460px;
+      max-height: 580px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      padding: 12px 14px;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .logo {
+      width: 30px; height: 30px; border-radius: 7px;
+      background: linear-gradient(135deg, #10b981, #0ea5e9);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 13px; color: #fff;
+    }
+    .title { font-weight: 700; font-size: 14px; }
+    .status { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: #ef4444; }
+    .dot.online { background: #10b981; }
+    .tabs {
+      display: flex;
+      background: #0b1120;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+    .tab.active {
+      color: #fff;
+      border-bottom-color: var(--accent);
+      background: rgba(16, 185, 129, 0.08);
+    }
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+    }
+    .item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 11px;
+      margin-bottom: 9px;
+    }
+    .item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .item-title {
+      font-size: 12.5px;
+      font-weight: 600;
+      word-break: break-all;
+      line-height: 1.35;
+    }
+    .tag {
+      background: #064e3b;
+      color: #6ee7b7;
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 5px;
+      white-space: nowrap;
+    }
+    .item-meta {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 6px 11px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn-sec {
+      background: #334155;
+      color: #e2e8f0;
+    }
+    .btn-sec:hover { background: #475569; }
+    .progress-bar {
+      height: 6px;
+      background: #0f172a;
+      border-radius: 99px;
+      overflow: hidden;
+      margin: 8px 0 5px 0;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #10b981, #38bdf8);
+      transition: width 0.2s;
+    }
+    .seg-row { display: flex; gap: 2px; margin-bottom: 6px; }
+    .seg { flex: 1; height: 4px; background: #0f172a; border-radius: 2px; overflow: hidden; }
+    .seg-in { height: 100%; background: #38bdf8; }
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 36px 16px;
+      font-size: 12.5px;
+      line-height: 1.5;
+    }
+    footer {
+      padding: 9px 12px;
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+    }
+    a { color: #38bdf8; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo">IDM</div>
+      <div>
+        <div class="title">Mini-IDM Video Downloader</div>
+        <div class="status">
+          <span class="dot" id="serverDot"></span>
+          <span id="serverText">Vérification du serveur local...</span>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-sec" id="openDashboardBtn" title="Ouvrir le gestionnaire complet">Dashboard ↗</button>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" id="tabVideos">🎬 Vidéos de l'onglet (<span id="countVideos">0</span>)</div>
+    <div class="tab" id="tabDownloads">⬇ Téléchargements (<span id="countDownloads">0</span>)</div>
+  </div>
+
+  <div class="content" id="viewVideos"></div>
+  <div class="content" id="viewDownloads" style="display:none;"></div>
+
+  <footer>
+    <span>Multi-Segments (8x) + HLS Muxer</span>
+    <a href="#" id="openFolderLink">📁 Dossier Mini-IDM</a>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,10 @@
+{
+  "name": "mini-idm",
+  "version": "1.0.0",
+  "description": "Gestionnaire de telechargement video multi-segments + Extension Navigateur (architecture inspiree d'IDM)",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js"
+  }
+}
+
