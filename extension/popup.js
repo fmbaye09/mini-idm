@@ -46,6 +46,11 @@ document.getElementById('openDashboardBtn').addEventListener('click', () => {
   chrome.tabs.create({ url: SERVER_URL });
 });
 
+const closePopupBtn = document.getElementById('closePopupBtn');
+if (closePopupBtn) {
+  closePopupBtn.addEventListener('click', () => window.close());
+}
+
 document.getElementById('openFolderLink').addEventListener('click', async (e) => {
   e.preventDefault();
   await fetch(`${SERVER_URL}/api/open`, {

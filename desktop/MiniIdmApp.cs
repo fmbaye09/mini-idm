@@ -156,15 +156,21 @@ namespace MiniIDM
                 Location = new Point(79, 41)
             };
 
-            Button openFolderBtn = CreateStyledButton("📁 Ouvrir le dossier Mini-IDM", Color.FromArgb(51, 65, 85), 210, 38);
+            Button openFolderBtn = CreateStyledButton("📁 Ouvrir le dossier Mini-IDM", Color.FromArgb(51, 65, 85), 205, 38);
             openFolderBtn.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            openFolderBtn.Location = new Point(this.ClientSize.Width - 230, 19);
+            openFolderBtn.Location = new Point(this.ClientSize.Width - 355, 19);
             openFolderBtn.Click += (s, e) => OpenFolderInExplorer(downloadDir);
+
+            Button hideToTrayBtn = CreateStyledButton("🗕 En tâche de fond", Color.FromArgb(51, 65, 85), 125, 38);
+            hideToTrayBtn.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            hideToTrayBtn.Location = new Point(this.ClientSize.Width - 142, 19);
+            hideToTrayBtn.Click += (s, e) => HideToTray();
 
             headerPanel.Controls.Add(badgeLbl);
             headerPanel.Controls.Add(titleLbl);
             headerPanel.Controls.Add(statusLabel);
             headerPanel.Controls.Add(openFolderBtn);
+            headerPanel.Controls.Add(hideToTrayBtn);
 
             // 2. Barre d'ajout manuel d'URL
             Panel inputPanel = new Panel
@@ -621,7 +627,7 @@ namespace MiniIDM
                 Font = new Font("Segoe UI Semibold", 10.5f, FontStyle.Bold),
                 ForeColor = TextLight,
                 AutoEllipsis = true,
-                Size = new Size(width - 140, 22),
+                Size = new Size(width - 175, 22),
                 Location = new Point(16, 12)
             };
 
@@ -640,8 +646,12 @@ namespace MiniIDM
                 BackColor = statusBg,
                 TextAlign = ContentAlignment.MiddleCenter,
                 Size = new Size(100, 22),
-                Location = new Point(width - 116, 12)
+                Location = new Point(width - 148, 12)
             };
+
+            Button closeCardBtn = CreateStyledButton("✕", Color.FromArgb(51, 65, 85), 24, 22);
+            closeCardBtn.Location = new Point(width - 40, 12);
+            closeCardBtn.Click += (s, e) => CancelJob(job.id, true);
 
             string metaStr = string.Format(
                 "⚡ {0}   •   📦 {1}{2} ({3:F1}%){4}{5}",
@@ -695,6 +705,7 @@ namespace MiniIDM
 
             card.Controls.Add(titleLbl);
             card.Controls.Add(badge);
+            card.Controls.Add(closeCardBtn);
             card.Controls.Add(metaLbl);
 
             return card;
@@ -806,18 +817,22 @@ namespace MiniIDM
             return string.Format(i > 1 ? "{0:F2} {1}" : "{0:F0} {1}", val, units[i]);
         }
 
+        private void HideToTray()
+        {
+            this.Hide();
+            trayIcon.ShowBalloonTip(
+                2000,
+                "Mini-IDM reste actif en arrière-plan",
+                "Les vidéos détectées dans votre navigateur continueront d'être capturées. Double-cliquez sur l'icône pour rouvrir.",
+                ToolTipIcon.Info
+            );
+        }
+
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             if (!allowClose && e.CloseReason == CloseReason.UserClosing)
             {
-                e.Cancel = true;
-                this.Hide();
-                trayIcon.ShowBalloonTip(
-                    2000,
-                    "Mini-IDM reste actif en arrière-plan",
-                    "Les vidéos détectées dans votre navigateur continueront d'être capturées. Double-cliquez sur l'icône pour rouvrir.",
-                    ToolTipIcon.Info
-                );
+                ExitApplication();
                 return;
             }
             base.OnFormClosing(e);

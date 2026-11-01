@@ -113,6 +113,34 @@
         background: rgba(16, 185, 129, 0.25);
         color: #fff;
       }
+      .idm-close-btn {
+        padding: 0 9px;
+        background: rgba(255, 255, 255, 0.04);
+        border: none;
+        border-left: 1px solid rgba(255, 255, 255, 0.12);
+        color: #94a3b8;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1;
+        transition: background 0.15s, color 0.15s;
+      }
+      .idm-close-btn:hover {
+        background: rgba(239, 68, 68, 0.85);
+        color: #fff;
+      }
+      .idm-menu-close {
+        background: transparent;
+        border: none;
+        color: #94a3b8;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 0 4px;
+      }
+      .idm-menu-close:hover {
+        color: #f87171;
+      }
       .idm-menu {
         display: none;
         margin-top: 6px;
@@ -204,6 +232,7 @@
           <span class="idm-badge" id="badgeFmt">MP4</span>
         </button>
         <button class="idm-dropdown-toggle" id="toggleBtn" title="Choisir la résolution / le flux">▼</button>
+        <button class="idm-close-btn" id="closeBtn" title="Fermer ce bouton">✕</button>
       </div>
       <div class="idm-menu" id="menu"></div>
     </div>
@@ -216,13 +245,22 @@
   const panelEl = shadow.getElementById('panel');
   const mainBtn = shadow.getElementById('mainBtn');
   const toggleBtn = shadow.getElementById('toggleBtn');
+  const closeBtn = shadow.getElementById('closeBtn');
   const badgeFmt = shadow.getElementById('badgeFmt');
   const menuEl = shadow.getElementById('menu');
   const toastEl = shadow.getElementById('toast');
+  let dismissedForCurrentPage = false;
 
   function showToast(html, isError = false) {
     toastEl.style.borderColor = isError ? '#ef4444' : '#10b981';
-    toastEl.innerHTML = html;
+    toastEl.innerHTML = `<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;"><div>${html}</div><button id="toastCloseBtn" style="background:transparent;border:none;color:#94a3b8;cursor:pointer;font-size:13px;font-weight:700;padding:0;line-height:1;" title="Fermer">✕</button></div>`;
+    const tc = shadow.getElementById('toastCloseBtn');
+    if (tc) {
+      tc.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toastEl.classList.remove('show');
+      });
+    }
     toastEl.classList.add('show');
     setTimeout(() => toastEl.classList.remove('show'), 4500);
   }
@@ -319,7 +357,7 @@
     menuEl.innerHTML =
       `<div class="idm-menu-header">
         <span>Qualités & Flux détectés (${options.length})</span>
-        <span>Mini-IDM</span>
+        <button class="idm-menu-close" id="menuCloseBtn" title="Fermer le menu">✕</button>
       </div>` +
       options
         .map(
@@ -336,6 +374,15 @@
       `
         )
         .join('');
+
+    const mClose = shadow.getElementById('menuCloseBtn');
+    if (mClose) {
+      mClose.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdownOpen = false;
+        menuEl.classList.remove('open');
+      });
+    }
 
     menuEl.querySelectorAll('.idm-item').forEach((el) => {
       el.addEventListener('click', (e) => {
@@ -405,6 +452,18 @@
     menuEl.classList.toggle('open', dropdownOpen);
   });
 
+  closeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dropdownOpen = false;
+    menuEl.classList.remove('open');
+    panelEl.classList.remove('visible');
+    if (activeVideo) {
+      activeVideo.__mini_idm_dismissed__ = true;
+    } else {
+      dismissedForCurrentPage = true;
+    }
+  });
+
   panelEl.addEventListener('mouseenter', () => {
     if (hideTimeout) {
       clearTimeout(hideTimeout);
@@ -432,7 +491,12 @@
    * et positionne le bouton flottant au coin supérieur droit du lecteur.
    */
   function updatePanelPosition() {
-    if (!activeVideo || !document.contains(activeVideo)) {
+    if (
+      !activeVideo ||
+      !document.contains(activeVideo) ||
+      activeVideo.__mini_idm_dismissed__ ||
+      dismissedForCurrentPage
+    ) {
       panelEl.classList.remove('visible');
       return;
     }
@@ -453,13 +517,14 @@
     }
 
     const top = Math.max(8, Math.round(rect.top + 10));
-    const left = Math.max(8, Math.min(window.innerWidth - 260, Math.round(rect.right - 250)));
+    const left = Math.max(8, Math.min(window.innerWidth - 285, Math.round(rect.right - 275)));
 
     panelEl.style.top = `${top}px`;
     panelEl.style.left = `${left}px`;
   }
 
   function showPanelForVideo(video) {
+    if (video.__mini_idm_dismissed__ || dismissedForCurrentPage) return;
     activeVideo = video;
     // Signaler la source directe éventuelle au background worker
     const src = video.currentSrc || video.src;
@@ -523,7 +588,7 @@
     if (msg && msg.type === 'TAB_MEDIA_UPDATED') {
       detectedMedia = msg.mediaList || [];
       scanVideos();
-      if (activeVideo) {
+      if (activeVideo && !activeVideo.__mini_idm_dismissed__ && !dismissedForCurrentPage) {
         updatePanelPosition();
         panelEl.classList.add('visible');
       }
